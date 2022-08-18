@@ -27,7 +27,8 @@ device = 'cuda' if cuda.is_available() else 'cpu'
 model.to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.00001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
+best = torch.tensor(0)
 
 def train(epoch):
     model.train()
@@ -41,11 +42,10 @@ def train(epoch):
         if batch_idx % 100000 == 0:
             print('==================\nTrain Epoch : {} | Loss : {:.6f}'.format(epoch, loss.item()))
 
-def test():
+def test(best = best):
     model.eval()
     test_loss = 0
     correct = 0
-    best = torch.tensor(0)
     for data, target in test_loader:
         data, target = data.to(device), target.to(device)
         output = model(data)
@@ -55,15 +55,17 @@ def test():
     test_loss /= len(test_loader.dataset)
     if correct > best:
         best = correct
+        print(f"best : {best}")
         torch.save(model.state_dict(), path + "/GH_DACON_2022_08/model_state/best.pt" )
     print(f'Test set: Average loss : {test_loss:.4f}, Accuracy : {correct}/{len(test_loader.dataset)}'
           f'({100. * correct / len(test_loader.dataset):.0f}%)') 
+    return best
 
 since = time.time()
-for epoch in range(1,20):
+for epoch in range(1,5):
     epoch_start = time.time()
     train(epoch)
-    test()
+    best = test()
     m, s = divmod(time.time() - epoch_start, 60)
     print(f'Training time: {m:.0f}m {s:.0f}s')
     
