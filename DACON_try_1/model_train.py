@@ -14,12 +14,16 @@ from data_processing import GH_Dataset
 
 path = "/home/inhamath/dacon"
 
-with open(path + "/GH_DACON_2022_08/train_loader.pickle", 'rb') as f:
-    train_loader = pickle.load(f)
+with open(path + "/GH_DACON_2022_08/train_dataset.pickle", 'rb') as f:
+    train_dataset = pickle.load(f)
 
-with open(path + "/GH_DACON_2022_08/test_loader.pickle", 'rb') as f:
-    test_loader = pickle.load(f)
+with open(path + "/GH_DACON_2022_08/test_dataset.pickle", 'rb') as f:
+    test_dataset = pickle.load(f)
 
+    batch_size = 256
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size)
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,batch_size=batch_size)
+    
 
 from model_GH import GH
 model = GH()
@@ -42,7 +46,7 @@ def train(epoch):
         if batch_idx % 100000 == 0:
             print('==================\nTrain Epoch : {} | Loss : {:.6f}'.format(epoch, loss.item()))
 
-def test(best = best):
+def test(best):
     model.eval()
     test_loss = 0
     correct = 0
@@ -53,6 +57,7 @@ def test(best = best):
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
     test_loss /= len(test_loader.dataset)
+    print(correct,best)
     if correct > best:
         best = correct
         print(f"best : {best}")
@@ -62,10 +67,10 @@ def test(best = best):
     return best
 
 since = time.time()
-for epoch in range(1,5):
+for epoch in range(1,20):
     epoch_start = time.time()
     train(epoch)
-    best = test()
+    best = test(best)
     m, s = divmod(time.time() - epoch_start, 60)
     print(f'Training time: {m:.0f}m {s:.0f}s')
     
