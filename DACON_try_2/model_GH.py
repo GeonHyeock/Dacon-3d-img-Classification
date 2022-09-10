@@ -1,3 +1,5 @@
+
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -83,17 +85,16 @@ class GH(nn.Module):
         self.bn1 = nn.BatchNorm1d(512)
         self.bn2 = nn.BatchNorm1d(256)
         self.dropout = nn.Dropout(p=0.3)
-        self.logsoftmax = nn.LogSoftmax(dim=1)
 
     def forward(self, input):
         xb, matrix3x3, matrix64x64 = self.transform(input)
         xb = F.relu(self.bn1(self.fc1(xb)))
         xb = F.relu(self.bn2(self.dropout(self.fc2(xb))))
         output = self.fc3(xb)
-        return self.logsoftmax(output), matrix3x3, matrix64x64
+        return output, matrix3x3, matrix64x64
 
 def pointnetloss(outputs, labels, m3x3, m64x64, alpha = 0.0001):
-    criterion = torch.nn.NLLLoss()
+    criterion = torch.nn.CrossEntropyLoss()
     bs=outputs.size(0)
     id3x3 = torch.eye(3, requires_grad=True).repeat(bs,1,1)
     id64x64 = torch.eye(64, requires_grad=True).repeat(bs,1,1)
